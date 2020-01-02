@@ -27,6 +27,15 @@ export enum CRYPTO {
 export type T_address = string
 export type T_wif = string
 
-export type T_btc_wallet_source = 'random' | 'seed'
+export enum N_wallet_source {random = 'random', seed = 'seed'}
 
-export type T_btc_network = 'mainnet' | 'testnet'
+export enum N_network {mainnet = 'mainnet', testnet = 'testnet'}
+
+export enum N_currency {
+  btc = 'btc'
+}
+
+export enum N_unit {
+  btc = 'btc',
+  sat = 'sat',
+}
