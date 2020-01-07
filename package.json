@@ -23,7 +23,8 @@
     "@mosteast/base-error": "^0.1.6",
     "axios": "^0.19.0",
     "bitcoinjs-lib": "^5.1.7",
-    "blockcypher": "^0.2.0"
+    "blockcypher": "^0.2.0",
+    "coinselect": "^3.1.11"
   },
   "devDependencies": {
     "@types/jest": "^24.0.23",

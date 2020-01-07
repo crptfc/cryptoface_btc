@@ -29,22 +29,22 @@ export enum IO {
   output = 'output',
 }
 
-export type T_address = string
-export type T_wif = string
-export type T_private_key = string
+export enum WALLET_SOURCE {random = 'random', seed = 'seed'}
 
-export enum N_wallet_source {random = 'random', seed = 'seed'}
+export enum NET {main = 'main', test = 'test', regtest = 'regtest'}
 
-export enum N_network {main = 'main', test = 'test', regtest = 'regtest'}
-
-export enum N_currency {
+export enum CURRENCY {
   btc = 'btc'
 }
 
-export enum N_unit {
+export enum UNIT {
   btc = 'btc',
   sat = 'sat',
 }
+
+export type T_address = string
+export type T_wif = string
+export type T_private_key = string
 
 export interface T_io {
   addresses: string[] // NON-NATIVE
@@ -77,4 +77,3 @@ export interface T_vout extends T_io {
   sequence: number
   txinwitness: string[]
 }
-

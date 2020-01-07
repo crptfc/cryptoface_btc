@@ -40,20 +40,4 @@ export interface T_tx {
   // content
 }
 
-export interface T_io {
-  value?: number
-  index?: number
-  confirmations?: number
-}
-
-export interface T_input extends T_io {
-  coinbase?: string
-  tx_hash?: string
-  value?: number
-}
-
-export interface T_output extends T_io {
-  // content
-}
-
 export type T_tx_hash = string

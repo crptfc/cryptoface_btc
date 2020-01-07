@@ -35,6 +35,6 @@ export class Account implements T_account {
   total_received: number
   total_sent: number
   tx_count: number
-  ios: Partial<Io>[]
+  ios: Io[]
   wif: T_wif
 }

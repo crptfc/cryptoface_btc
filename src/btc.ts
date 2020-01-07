@@ -1,15 +1,20 @@
 import { T_account, T_cryptoface } from '@crptfc/cryptoface'
+import { Network } from 'bitcoinjs-lib/types/networks'
 import { Payment, PaymentOpts } from 'bitcoinjs-lib/types/payments'
+import { Insufficient_fund } from './error/insufficient_fund'
 import { Invalid_argument } from './error/invalid_argument'
+import { Client_bcoin } from './lib/bcoin/client'
 import { Client_blockcypher } from './lib/blockcypher/client'
 import { Account } from './model/account'
-import { N_currency, N_network, N_unit, N_wallet_source, T_address, T_private_key, T_wallet_pure, T_wif } from './type'
+import { Fee } from './model/fee'
+import { Io } from './model/io'
+import { CURRENCY, NET, UNIT, WALLET_SOURCE, T_address, T_private_key, T_wallet_pure, T_wif } from './type'
 
 const env = process.env
 
 const bitcoin = require('bitcoinjs-lib')
 
-export interface T_cryptoface_btc extends T_cryptoface<T_opt, N_currency, N_unit, T_IN_create_account, T_IN_get_account, T_IN_create_transaction, T_IN_get_transaction> {
+export interface T_cryptoface_btc extends T_cryptoface<T_opt, CURRENCY, UNIT, T_IN_create_account, T_IN_get_account, T_IN_create_transaction, T_IN_get_transaction> {
   wif_import(wif: T_wif): T_wallet_pure
 
   create_account(opt?: T_IN_create_account): Account
@@ -22,19 +27,19 @@ export interface T_cryptoface_btc extends T_cryptoface<T_opt, N_currency, N_unit
 
   create_transaction(opt: T_IN_create_transaction): Promise<any>
 
-  get_utxoS(address: T_address): Promise<any>
+  get_utxo(address: T_address): Promise<any>
 
-  get_utxoS(opt: T_IN_get_utxoS): Promise<any>
+  get_utxo(opt: T_IN_get_utxoS): Promise<any>
 }
 
 export class Btc implements T_cryptoface_btc {
   opt: T_opt = {
-    network: N_network.main,
+    network: NET.main,
   }
 
   client: Client_blockcypher
 
-  constructor(opt?: T_opt | N_network) {
+  constructor(opt?: T_opt | NET) {
     let o: T_opt = {}
 
     switch (typeof opt) {
@@ -50,7 +55,7 @@ export class Btc implements T_cryptoface_btc {
 
   opt_merge(opt: T_opt) {
     this.opt = {
-      network: N_network.main,
+      network: NET.main,
       ...this.opt,
       ...opt,
     }
@@ -72,7 +77,7 @@ export class Btc implements T_cryptoface_btc {
     }
 
     const { source } = opt = {
-      source: N_wallet_source.random,
+      source: WALLET_SOURCE.random,
       ...opt,
     }
 
@@ -115,7 +120,7 @@ export class Btc implements T_cryptoface_btc {
       optS = []
       for (let i = 0; i < count; i++) {
         optS.push(<T_IN_create_account>{
-          source: N_wallet_source.random,
+          source: WALLET_SOURCE.random,
         })
       }
     }
@@ -151,20 +156,22 @@ export class Btc implements T_cryptoface_btc {
         throw new Invalid_argument(`Invalid argument type "${typeof a}"`, 'Argument example: create_transaction("a_private_key", "an_addr") or create_transaction(obj_T_IN_create_transaction)')
     }
 
-    let pk    = opt.from.private_key,
-        wif   = opt.from.wif,
-        addr  = opt.to.address,
-        value = opt.value,
-        fee   = opt.fee
+    // f_ : from
+    // t_ : to
+    let f_pk   = opt.from.private_key,
+        f_wif  = opt.from.wif,
+        t_addr = opt.to.address,
+        value  = opt.value,
+        fee    = opt.fee
 
-    if ((!pk && !wif) || !addr || !value) {
+    if ((!f_pk && !f_wif) || !t_addr || !value) {
       throw new Invalid_argument('Options `form`, `to` and `value` are required', 'private key or address should both be passed')
     }
 
     let key
-    if (pk) {
+    if (f_pk) {
       try {
-        key = this._from_private_key(pk)
+        key = this._from_private_key(f_pk)
       } catch (e) {
         if (e.message.includes('Expected Buffer(Length:')) {
           throw new Invalid_argument('Invalid `from.private_key`, If you are passing WIF please use `from.wif` to assign it')
@@ -172,33 +179,51 @@ export class Btc implements T_cryptoface_btc {
       }
     } else {
       try {
-        key = this._from_wif(wif)
+        key = this._from_wif(f_wif)
       } catch (e) {
         throw new Invalid_argument('Invalid `from.wif`, If you are passing private key please use `from.private_key` to assign it')
       }
     }
 
-    const address = this._p2pkh({
+    const f_addr = this._p2pkh({
       pubkey: key.publicKey,
     }).address.toString()
-    console.log(address)
-    const r = await this.get_utxoS(address)
-    console.log(r)
-    return
 
-    const tx = new bitcoin.TransactionBuilder()
-    tx.addInput('d18e7106e5492baf8f3929d2d573d27d89277f3825d3836aa86ea1d843b5158b', 1)
-    tx.addOutput('12idKQBikRgRuZEbtxXQ4WFYB7Wa3hZzhT', 149000)
+    const ios = await this.get_utxo(f_addr)
+    // const inputs = []
+    // const outputs = []
+    let total_input = 0
+
+    // console.log(ios)
+    //
+    const tx = new bitcoin.TransactionBuilder(adapter_net_bitcoinjs(this.opt.network))
+    for (let it of ios) {
+      total_input += it.value
+      tx.addInput(it.tx_hash, it.index_io)
+      if (total_input >= value) {
+        break
+      }
+    }
+
+    if (total_input <= value) {
+      throw new Insufficient_fund(`Expected balance >= ${value}, Actual balance: ${total_input}`)
+    }
+
+    tx.maximumFeeRate = (await this.get_fee_rate()).high
+
+    tx.addOutput(this._to_output_script(t_addr), value)
     tx.sign(0, key)
-    console.log(tx.build().toHex())
+    const hex = tx.build().toHex()
 
-    return new Promise<any>(() => {})
+    const bcoin = new Client_bcoin()
+    const r = await bcoin.broadcast_raw_transaction(hex).catch(console.log)
+    console.log(hex, r)
   }
 
   create_transactionS(optS?: T_IN_create_transaction[]): any {
   }
 
-  get_utxoS(a: T_IN_get_utxoS | T_address) {
+  get_utxo(a: T_IN_get_utxoS | T_address): Promise<Io[]> {
     let opt: Partial<T_IN_get_utxoS> = {}
 
     switch (typeof a) {
@@ -215,6 +240,10 @@ export class Btc implements T_cryptoface_btc {
     return this.client.get_utxo(opt.address)
   }
 
+  get_fee_rate(): Promise<Fee> {
+    return this.client.get_fee_rate()
+  }
+
   get_transaction(opt?: T_IN_get_transaction): any {
   }
 
@@ -228,6 +257,10 @@ export class Btc implements T_cryptoface_btc {
       wif: key.toWIF(),
       address: this._p2pkh({ pubkey: key.publicKey }).address,
     }
+  }
+
+  _to_output_script(address: string, network?: Network): Buffer {
+    return bitcoin.address.toOutputScript(address, adapter_net_bitcoinjs(this.opt.network))
   }
 
   _p2pkh(a: Payment, opts?: PaymentOpts) {
@@ -249,7 +282,7 @@ export class Btc implements T_cryptoface_btc {
   }
 }
 
-export function adapter_net_bitcoinjs(net: N_network) {
+export function adapter_net_bitcoinjs(net: NET) {
   const n = bitcoin.networks
   const map = {
     main: n.bitcoin,
@@ -261,14 +294,14 @@ export function adapter_net_bitcoinjs(net: N_network) {
 }
 
 export interface T_opt {
-  network?: N_network
+  network?: NET
 }
 
-export type T_IN_create_account = N_wallet_source | {
+export type T_IN_create_account = WALLET_SOURCE | {
   /**
    * How the wallet will be generated
    */
-  source?: N_wallet_source
+  source?: WALLET_SOURCE
 
   /**
    * Only required when `source` type is `'seed'`

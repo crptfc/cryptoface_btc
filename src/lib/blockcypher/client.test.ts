@@ -14,19 +14,12 @@ it('can get address', async done => {
 
 it('can get utxoS', async done => {
   const r = await c.get_utxo('12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX')
-  expect(r.total_received).toBeTruthy()
+  expect(r.length).toBeTruthy()
   done()
 })
 
-it('should ', async () => {
-  class A {
-    p1 = 1
-
-    constructor(value) {
-      this.p1 = value
-    }
-  }
-
- const a = new A(2)
-  console.log(a)
+it('Can get fee rate', async done => {
+  const r = await c.get_fee_rate()
+  console.log(r)
+  done()
 })

@@ -1,5 +1,5 @@
 import { Btc } from './btc'
-import { N_network, N_wallet_source } from './type'
+import { NET, WALLET_SOURCE } from './type'
 
 jest.setTimeout(15000)
 
@@ -20,7 +20,7 @@ it('should be able to import wallet', async () => {
 it('should generate random wallet', async () => {
   const btc = new Btc()
 
-  const wallet = btc.create_account(N_wallet_source.random)
+  const wallet = btc.create_account(WALLET_SOURCE.random)
   expect(wallet.address.length).toBeTruthy()
   expect(wallet.wif.length).toBeTruthy()
 
@@ -35,7 +35,7 @@ it('should generate multiple wallets', async () => {
 })
 
 it('can get address info', async done => {
-  const btc = new Btc(N_network.test)
+  const btc = new Btc(NET.test)
 
   const r = await btc.get_account('mswaTiadP1ZeNWgRaMwkYK1AGqhr5YVdSk')
   console.log(r)
@@ -45,10 +45,10 @@ it('can get address info', async done => {
 })
 
 it('can get utxo', async (done) => {
-  const btc = new Btc(N_network.test)
+  const btc = new Btc(NET.test)
 
   // const account = await btc.get_utxoS('1HNBnHmJnBnGZrFGGzTq53DqYsr11RWKnn')
-  const account = await btc.get_utxoS('mswaTiadP1ZeNWgRaMwkYK1AGqhr5YVdSk')
+  const account = await btc.get_utxo('mswaTiadP1ZeNWgRaMwkYK1AGqhr5YVdSk')
   console.log(account)
   done()
 })
@@ -57,12 +57,12 @@ it('can get utxo', async (done) => {
  * ONE-TIME test
  */
 it('can make tx', async (done) => {
-  const btc = new Btc(N_network.test)
+  const btc = new Btc(NET.test)
 
   btc.create_transaction({
     from: { wif: '91dNbAv2TsP7fiMMuQzKgqFVVFRLyNSzjKXk9mXjHwMzbDZjqtG' },
     to: { address: 'mkRpD5mbp6cSXouU5Rk3oJPEbyyA8UBjZh' },
-    value: 10,
+    value: 100000,
   }).then(r => {
     done()
   })

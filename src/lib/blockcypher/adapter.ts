@@ -8,16 +8,20 @@ export function adapter_block_blockcypher(raw): Block {
   return <Block>{}
 }
 
-export function adapter_tx_blockcypher(raw: T_io_blockcypher): Io {
+export function adapter_io_blockcypher(raw: T_io_blockcypher): Io {
   const ins = new Io()
-  ins.tx = raw.tx_hash
+  ins.tx_hash = raw.tx_hash
   ins.value = raw.value
-  ins.index_io = raw.spent ? raw.tx_input_n : raw.tx_output_n
-  ins.as = raw.spent ? IO.input : IO.output
+  ins.index_io = raw.spent ? raw.tx_output_n : raw.tx_input_n
+  ins.as = raw.spent ? IO.output : IO.input
+  ins.confirmations = raw.confirmations
+  ins.address = raw.address
+  ins.script = raw.script
   return ins
 }
 
 export function adapter_account_blockcypher(raw: T_account_blockcypher): Account {
+  console.log(raw)
   const ins = new Account()
   ins.address = raw.address
   ins.total_sent = raw.total_sent
@@ -25,7 +29,7 @@ export function adapter_account_blockcypher(raw: T_account_blockcypher): Account
   ins.balance_final = raw.final_balance
   ins.balance_unconfirmed = raw.unconfirmed_balance
   ins.tx_count = raw.n_tx
-  ins.ios = raw.txrefs?.map(adapter_tx_blockcypher)
+  ins.ios = raw.txrefs?.map(adapter_io_blockcypher)
 
   return <Account>ins
 }
