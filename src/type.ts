@@ -35,7 +35,7 @@ export type T_private_key = string
 
 export enum N_wallet_source {random = 'random', seed = 'seed'}
 
-export enum N_network {mainnet = 'mainnet', testnet = 'testnet'}
+export enum N_network {main = 'main', test = 'test', regtest = 'regtest'}
 
 export enum N_currency {
   btc = 'btc'

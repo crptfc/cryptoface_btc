@@ -1,5 +1,5 @@
 import { Btc } from './btc'
-import { N_wallet_source } from './type'
+import { N_network, N_wallet_source } from './type'
 
 jest.setTimeout(15000)
 
@@ -34,28 +34,35 @@ it('should generate multiple wallets', async () => {
   expect(walletS[0]?.id).toBeTruthy()
 })
 
-it('can get address info', async () => {
-  const btc = new Btc()
+it('can get address info', async done => {
+  const btc = new Btc(N_network.test)
 
-  const r = await btc.get_account('1HNBnHmJnBnGZrFGGzTq53DqYsr11RWKnn')
+  const r = await btc.get_account('mswaTiadP1ZeNWgRaMwkYK1AGqhr5YVdSk')
+  console.log(r)
   expect(r.tx_count).toBeTruthy()
   expect(r.ios.length).toBeTruthy()
+  done()
 })
 
 it('can get utxo', async (done) => {
-  const btc = new Btc()
+  const btc = new Btc(N_network.test)
 
   // const account = await btc.get_utxoS('1HNBnHmJnBnGZrFGGzTq53DqYsr11RWKnn')
   const account = await btc.get_utxoS('mswaTiadP1ZeNWgRaMwkYK1AGqhr5YVdSk')
   console.log(account)
+  done()
 })
 
+/**
+ * ONE-TIME test
+ */
 it('can make tx', async (done) => {
-  const btc = new Btc()
+  const btc = new Btc(N_network.test)
 
   btc.create_transaction({
-    from: { wif: 'L1UA6345MHsP5sat5hCu8WhsQbAd5oQy8iZCEoW6DweaMAz7qEou' },
-    to: { address: '1EMmeU3fPTF9jzT4J3231yEBje3D6qCqMs' },
+    from: { wif: '91dNbAv2TsP7fiMMuQzKgqFVVFRLyNSzjKXk9mXjHwMzbDZjqtG' },
+    to: { address: 'mkRpD5mbp6cSXouU5Rk3oJPEbyyA8UBjZh' },
+    value: 10,
   }).then(r => {
     done()
   })
