@@ -27,7 +27,7 @@ export interface T_cryptoface_btc extends T_cryptoface<T_opt, N_currency, N_unit
   get_utxoS(opt: T_IN_get_utxoS): Promise<any>
 }
 
-export const btc: T_cryptoface_btc = {
+export class Btc implements T_cryptoface_btc {
   create_account(opt?: T_IN_create_account): Account {
     const SOLUTION = 'Checkout `T_create_wallet_opt`, make sure all arguments\' types are correct'
 
@@ -70,7 +70,7 @@ export const btc: T_cryptoface_btc = {
 
     return account
 
-  },
+  }
 
   /**
    * @param optS - option array or number of random account
@@ -87,21 +87,17 @@ export const btc: T_cryptoface_btc = {
     }
 
     return optS.map(opt => this.create_account(opt))
-  },
+  }
 
-  get_account(opt: T_IN_get_account): any {
+  get_account(opt: T_IN_get_account): Promise<Account> {
     if (typeof opt === 'string') {
       opt = { address: opt }
     }
 
     return bc.get_address(opt.address)
-  },
+  }
 
-  // get_accountS(optS?: T_IN_get_account[]): Promise<Account[]> {
-  //
-  // },
-
-  async create_transaction(a: T_IN_create_transaction | T_private_key, b?: T_address): Promise<any> {
+  async create_transaction(a, b?): Promise<any> {
 
     let opt: Partial<T_IN_create_transaction> = {
       from: {},
@@ -132,7 +128,7 @@ export const btc: T_cryptoface_btc = {
       key = bitcoin.ECPair.fromPrivateKey(Buffer.from(pk))
     } catch (e) {
       if (e.message.includes('Expected Buffer(Length:')) {
-        throw new Invalid_argument('Invalid private key, If you are passing WIF please use `opt.from.wif` to assign it')
+        throw new Invalid_argument('Invalid `from.private_key`, If you are passing WIF please use `from.wif` to assign it')
       }
     }
 
@@ -140,7 +136,7 @@ export const btc: T_cryptoface_btc = {
       try {
         key = bitcoin.ECPair.fromWIF(wif)
       } catch (e) {
-        throw new Invalid_argument('Invalid wif, If you are passing private key please use `opt.from.private_key` to assign it')
+        throw new Invalid_argument('Invalid `from.wif`, If you are passing private key please use `from.private_key` to assign it')
       }
     }
 
@@ -156,10 +152,10 @@ export const btc: T_cryptoface_btc = {
     console.log(tx.build().toHex())
 
     return new Promise<any>(() => {})
-  },
+  }
 
   create_transactionS(optS?: T_IN_create_transaction[]): any {
-  },
+  }
 
   get_utxoS(a: T_IN_get_utxoS | T_address) {
     let opt: Partial<T_IN_get_utxoS> = {}
@@ -176,13 +172,13 @@ export const btc: T_cryptoface_btc = {
     }
 
     return bc.get_utxoS(opt.address)
-  },
+  }
 
   get_transaction(opt?: T_IN_get_transaction): any {
-  },
+  }
 
   get_transactionS(opt?: T_IN_get_transaction[]): any {
-  },
+  }
 
   wif_import(wif: T_wif): T_wallet_pure {
     const key = bitcoin.ECPair.fromWIF(wif)
@@ -191,7 +187,7 @@ export const btc: T_cryptoface_btc = {
       wif: key.toWIF(),
       address: bitcoin.payments.p2pkh({ pubkey: key.publicKey }).address,
     }
-  },
+  }
 }
 
 export interface T_opt {
