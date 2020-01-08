@@ -215,9 +215,7 @@ export class Btc implements T_cryptoface_btc {
     tx.sign(0, key)
     const hex = tx.build().toHex()
 
-    const bcoin = new Client_bcoin()
-    const r = await bcoin.broadcast_raw_transaction(hex).catch(console.log)
-    console.log(hex, r)
+    return this.client.broadcast_raw_transaction(hex)
   }
 
   create_transactionS(optS?: T_IN_create_transaction[]): any {

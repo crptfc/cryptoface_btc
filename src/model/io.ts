@@ -16,8 +16,8 @@ export class Io {
    *
    * Use this property to determine spending or receiving
    *
-   * as (another tx's) input: spending
-   * as (another tx's) output: receiving
+   * as input: spending
+   * as output: receiving
    */
   as: IO
 

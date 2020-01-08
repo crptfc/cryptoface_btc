@@ -5,6 +5,8 @@ import { Io } from '../../model/io'
 import { IO, NET, T_address } from '../../type'
 import { adapter_account_blockcypher, T_account_blockcypher } from './adapter'
 
+const Bc = require('blockcypher')
+
 const { get } = require('axios')
 
 const URL_ROOT = 'https://api.blockcypher.com/v1/btc'
@@ -59,7 +61,7 @@ class Client {
   }
 
   broadcast_raw_transaction(hex: string) {
-    return this.api(`txs/push?token=XXXXX`, {}, {
+    return this.api(`txs/push?token=${process.env.key_blockcypher}`, {}, {
       method: 'post',
       data: { tx: hex },
     })

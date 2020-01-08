@@ -62,8 +62,9 @@ it('can make tx', async (done) => {
   btc.create_transaction({
     from: { wif: '91dNbAv2TsP7fiMMuQzKgqFVVFRLyNSzjKXk9mXjHwMzbDZjqtG' },
     to: { address: 'mkRpD5mbp6cSXouU5Rk3oJPEbyyA8UBjZh' },
-    value: 100000,
+    value: 50000,
   }).then(r => {
+    console.log(r)
     done()
   })
 })

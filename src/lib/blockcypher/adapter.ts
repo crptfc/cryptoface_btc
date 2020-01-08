@@ -21,7 +21,6 @@ export function adapter_io_blockcypher(raw: T_io_blockcypher): Io {
 }
 
 export function adapter_account_blockcypher(raw: T_account_blockcypher): Account {
-  console.log(raw)
   const ins = new Account()
   ins.address = raw.address
   ins.total_sent = raw.total_sent
