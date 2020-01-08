@@ -14,3 +14,4 @@ it('can get address', async (done) => {
   expect(r.balance_final).toBe(r2.balance_final)
   done()
 })
+

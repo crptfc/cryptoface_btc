@@ -4,7 +4,8 @@ import { Io } from '../../model/io'
 import { IO, NET, T_address } from '../../type'
 import { T_tx_bcoin } from './adapter'
 
-const { post, get } = require('axios')
+const axios = require('axios')
+const { post, get } = axios
 
 export interface T_client_bcoin_opt extends T_opt {
   // Base url set
@@ -35,7 +36,9 @@ class Client {
   api<T = any>(url = '', opt?): Promise<T> {
     const full = this.get_base_url() + '/' + (url ?? '')
 
-    return get(full, {
+    return axios({
+      url: full,
+      method: 'get',
       ...opt,
     }).then(r => <any>r.data)
   }

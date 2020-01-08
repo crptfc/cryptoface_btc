@@ -5,9 +5,7 @@ import { Io } from '../../model/io'
 import { IO, NET, T_address } from '../../type'
 import { adapter_account_blockcypher, T_account_blockcypher } from './adapter'
 
-const Bc = require('blockcypher')
-
-const { get } = require('axios')
+const axios = require('axios')
 
 const URL_ROOT = 'https://api.blockcypher.com/v1/btc'
 
@@ -16,25 +14,26 @@ class Client {
     network: NET.main,
   }
 
-  constructor(opt?) {
+  constructor(opt?: T_opt) {
     this.opt = {
       ...this.opt,
       ...opt,
     }
   }
 
-  api<T = any>(url = '', opt?, request_opt?): Promise<T> {
+  api<T = any>(url = '', opt?): Promise<T> {
 
     const net_map = {
       main: 'main',
       test: 'test3',
     }
 
-    const full = URL_ROOT + '/' + net_map[this.opt.network.toString()] + '/' + (url ? url + '/' : '')
+    const full = URL_ROOT + '/' + net_map[this.opt.network.toString()] + (url ? '/' + url : '')
 
-    return get(full, {
-      params: opt,
-      ...request_opt,
+    return axios({
+      url: full,
+      method: 'get',
+      ...opt,
     }).then(r => <any>r.data)
   }
 
@@ -60,8 +59,22 @@ class Client {
     })
   }
 
+  async create_transaction(from_wif, to_address) {
+
+  }
+
+  create_transaction_skeleton(from: T_address, to: T_address, value: number) {
+    return this.api(`txs/new`, {
+      method: 'post',
+      data: {
+        inputs: [ { addresses: [ from ] } ],
+        outputs: [ { addresses: [ to ], value } ],
+      },
+    })
+  }
+
   broadcast_raw_transaction(hex: string) {
-    return this.api(`txs/push?token=${process.env.key_blockcypher}`, {}, {
+    return this.api(`txs/push?token=${process.env.key_blockcypher}`, {
       method: 'post',
       data: { tx: hex },
     })
